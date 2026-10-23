@@ -15,7 +15,7 @@ import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-from . import UA, aisa, snap
+from . import UA, aisa, getanyapi, snap
 from .i18n import t
 from .terms import STOP, _drop_nested, names
 
@@ -86,13 +86,20 @@ def x_new(cfg: dict, state: Path) -> dict:
     handles = accounts(cfg)
     if not handles:
         return {"skipped": True}
-    data, cost = aisa.call_all([{"call_id": h, "tool": "get_twitter_user_last_tweets", "arguments": {"userName": h}}
-                                for h in handles])
-    posts = []
-    for h in handles:
-        for tw in ((data.get(h) or {}).get("data") or {}).get("tweets") or []:
-            posts.append({"account": h, "text": tw.get("text") or "", "likes": int(tw.get("likeCount") or 0),
-                          "url": tw.get("url", ""), "created": _posted(tw)})
+    posts, errors = [], []
+    if getanyapi.key():     # AnyAPI when its key is set: AIsa's X reads kept dropping the connection
+        data, cost, errors = getanyapi.user_posts(handles)
+        if not data:
+            raise getanyapi.AnyApiError(errors[0] if errors else "no account answered")
+        for h, items in data.items():
+            posts += [{"account": h, **p} for p in items]
+    else:
+        data, cost = aisa.call_all([{"call_id": h, "tool": "get_twitter_user_last_tweets", "arguments": {"userName": h}}
+                                    for h in handles])
+        for h in handles:
+            for tw in ((data.get(h) or {}).get("data") or {}).get("tweets") or []:
+                posts.append({"account": h, "text": tw.get("text") or "", "likes": int(tw.get("likeCount") or 0),
+                              "url": tw.get("url", ""), "created": _posted(tw)})
     path = state / "x_vocab.json.gz"
     vocab: dict[str, str] | None = snap.load(path)
     first_run = vocab is None
@@ -107,7 +114,7 @@ def x_new(cfg: dict, state: Path) -> dict:
     if posts:   # a failed fetch keeps yesterday's vocabulary
         snap.save(path, {term: d for term, d in vocab.items() if d >= cutoff})
     return {"accounts": len(handles), "answered": len(data), "posts": len(posts), "cost_micros": cost,
-            "first_run": first_run, "terms": rows}
+            "errors": errors, "first_run": first_run, "terms": rows}
 
 
 _HF_NOISE = re.compile(r"[-_.](gguf|ggml|awq|gptq|fp8|fp16|bf16|int[48]|mlx|exl2|onnx|uncensored|abliterated|"

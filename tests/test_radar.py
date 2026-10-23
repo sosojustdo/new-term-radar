@@ -378,6 +378,8 @@ def test_sources_run_writes_no_report_when_nothing_is_new(tmp_path, monkeypatch)
 
 def test_sources_run_reports_and_keeps_a_new_name(tmp_path, monkeypatch):
     _no_judge(monkeypatch)
+    from radar import aisa
+    monkeypatch.setattr(aisa, "SPENT", [72000])     # what the real fetch would have billed
     monkeypatch.setattr(cli.sources, "x_new", lambda cfg, state: {"posts": 400, "cost_micros": 72000, "terms": [
         {"term": "qwen3.9", "recent": 2, "note": "X: 2 accounts, 900 likes", "examples": ["@Alibaba_Qwen: Qwen3.9 is out"],
          "posts": [{"account": "Alibaba_Qwen", "text": "Qwen3.9 is out", "url": "https://x.com/p/1", "likes": 900}]}]})
@@ -385,7 +387,7 @@ def test_sources_run_reports_and_keeps_a_new_name(tmp_path, monkeypatch):
     out, state = tmp_path / "sources.md", tmp_path / "s"
     cli.main(["sources", "--config", str(_write_config(tmp_path)), "--state", str(state), "--out", str(out)])
     text = out.read_text()
-    assert "**qwen3.9**" in text and "$0.072" in text and "[post](https://x.com/p/1)" in text
+    assert "**qwen3.9**" in text and "AIsa $0.072" in text and "[post](https://x.com/p/1)" in text
     assert store.connect(state).execute("SELECT term FROM leads").fetchall() == [("qwen3.9",)]
 
 

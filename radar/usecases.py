@@ -52,7 +52,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
 
-from . import UA, aisa, competition, goanyapi, review, snap
+from . import UA, aisa, competition, getanyapi, goanyapi, review, snap
 
 POSTS_KEPT = 12
 POST_CHARS = 400
@@ -124,17 +124,21 @@ def evidence(names: list[str], repos: dict[str, str], today: date,
     out, cost = {}, 0
     for n in names:
         error, tweets = "", []
+        query = f'"{n}" min_faves:{MIN_FAVES} -filter:replies since:{since}'
         try:
-            data, spent = aisa.call([{"call_id": "s", "tool": SEARCH_TOOL, "arguments": {
-                "query": f'"{n}" min_faves:{MIN_FAVES} -filter:replies since:{since}', "queryType": "Top"}}])
+            if getanyapi.key():
+                found, spent = getanyapi.tweet_search(query)
+            else:
+                data, spent = aisa.call([{"call_id": "s", "tool": SEARCH_TOOL, "arguments": {"query": query, "queryType": "Top"}}])
+                d = data.get("s") or {}
+                found = [{"text": t.get("text") or "", "likes": int(t.get("likeCount") or 0),
+                          "by": (t.get("author") or {}).get("userName") or "?", "url": t.get("url", "")}
+                         for t in d.get("tweets") or (d.get("data") or {}).get("tweets") or []]
             cost += spent
-            d = data.get("s") or {}
-            tweets = d.get("tweets") or (d.get("data") or {}).get("tweets") or []
-        except aisa.AisaError as exc:
+            tweets = [dict(t, text=" ".join(t["text"].split())) for t in found]
+        except (aisa.AisaError, getanyapi.AnyApiError) as exc:
             error = " ".join(re.sub(r"<[^>]+>", " ", str(exc)).split())[:80]
-        posts = sorted(({"text": " ".join((t.get("text") or "").split()), "likes": int(t.get("likeCount") or 0),
-                         "by": (t.get("author") or {}).get("userName") or "?", "url": t.get("url", "")} for t in tweets),
-                       key=lambda p: -p["likes"])[:POSTS_KEPT]
+        posts = sorted(tweets, key=lambda p: -p["likes"])[:POSTS_KEPT]
         out[n] = {"posts": posts, "readme": _readme(repos[n]) if repos.get(n) else "", "repo": repos.get(n, ""), "error": error}
         if not out[n]["readme"] and (texts or {}).get(n):     # a product's own listing stands in for a README
             out[n]["repo"], out[n]["readme"] = texts[n]
@@ -270,6 +274,8 @@ def volumes(phrases: list[str], location_code: int) -> tuple[dict[str, dict], in
     """{phrase: {"volume", "month"}} from Google Ads, one batch call."""
     if not phrases:
         return {}, 0
+    if getanyapi.key():
+        return getanyapi.search_volume(phrases, location_code)
     data, cost = aisa.call([{"call_id": "vol", "tool": VOLUME_TOOL, "arguments": {"body": [{
         "keywords": phrases, "location_code": location_code, "language_code": "en"}]}}])
     out = {}
@@ -436,6 +442,8 @@ def _pairs(task: dict) -> list[tuple[date, int, int]]:
 
 def fetch_series(keywords: list[str], benchmark: str, today: date) -> tuple[dict[str, dict], int]:
     """{keyword: {"solo": [(day, value)], "pair": [(day, value, benchmark value)]}}: two Trends lookups each."""
+    if getanyapi.key():
+        return _fetch_series_anyapi(keywords, benchmark)
     window = {"date_from": (today - timedelta(days=TRENDS_DAYS)).isoformat(), "date_to": today.isoformat()}
     calls = []
     for i, k in enumerate(keywords):
@@ -444,6 +452,32 @@ def fetch_series(keywords: list[str], benchmark: str, today: date) -> tuple[dict
     data, cost = aisa.call_all(calls)
     task = lambda cid: ((data.get(cid) or {}).get("tasks") or [{}])[0]  # noqa: E731
     return {k: {"solo": review._series(task(f"s{i}")), "pair": _pairs(task(f"p{i}"))} for i, k in enumerate(keywords)}, cost
+
+
+def _fetch_series_anyapi(keywords: list[str], benchmark: str) -> tuple[dict[str, dict], int]:
+    """fetch_series through AnyAPI's google.trends: "3m" is daily, about TRENDS_DAYS days.
+    A lookup that fails leaves that keyword's series empty, as AIsa's failed calls did."""
+    def one(k: str):
+        cost, solo, pair = 0, [], []
+        try:
+            (solo,), c = getanyapi.trends([k])
+            cost += c
+        except getanyapi.AnyApiError:
+            pass
+        if k.lower() != benchmark.lower():
+            try:
+                (a, b), c = getanyapi.trends([k, benchmark])
+                cost += c
+                bv = dict(b)
+                pair = [(d, v, bv.get(d, 0)) for d, v in a]
+            except getanyapi.AnyApiError:
+                pass
+        return k, {"solo": solo, "pair": pair}, cost
+    out, total = {}, 0
+    with ThreadPoolExecutor(getanyapi.WORKERS) as pool:
+        for k, s, c in pool.map(one, keywords):
+            out[k], total = s, total + c
+    return out, total
 
 
 def measure(rows: list[dict], series: dict[str, dict], min_daily: int, today: date,

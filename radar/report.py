@@ -72,7 +72,12 @@ def _state(block: dict, ok: str) -> str:
 
 
 def _cost(*blocks: dict) -> str:
-    return f"${sum(int(b.get('cost_micros') or 0) for b in blocks) / 1e6:.3f}"
+    """Spend per platform, counted where each request is billed (aisa.SPENT, getanyapi.SPENT),
+    so a block that mixes platforms is split correctly. `blocks` is kept for the callers."""
+    from . import aisa, getanyapi
+    parts = {"AIsa": aisa.SPENT[0], "AnyAPI": getanyapi.SPENT[0]}
+    total = sum(parts.values())
+    return f"${total / 1e6:.3f}(" + ", ".join(f"{k} ${v / 1e6:.3f}" for k, v in parts.items()) + ")"
 
 
 def topic_lines(cfg: dict, lead: list[dict], b: dict[str, dict], gsc: dict) -> list[str]:

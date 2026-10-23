@@ -27,6 +27,9 @@ TIMEOUT = 240
 CHAT_TIMEOUT = 90
 
 
+SPENT = [0]         # micro-USD billed by AIsa tools this process, for the report's cost line
+
+
 class AisaError(RuntimeError):
     pass
 
@@ -79,6 +82,7 @@ def call(calls: list[dict]) -> tuple[dict[str, dict], int]:
         cost += int(r.get("customer_cost_micros_usd") or 0)
         if r.get("successful"):
             out[r["call_id"]] = r.get("data") or {}
+    SPENT[0] += cost
     return out, cost
 
 
