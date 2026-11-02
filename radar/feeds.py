@@ -153,8 +153,10 @@ TRENDING = {
     "douyin": ("get_tikhub_douyin_app_v3_fetch_hot_search_list", {}, lambda d: [w.get("word") for k in ("word_list", "trending_list")
                                                                                  for w in (d.get("data") or {}).get(k) or []]),
     "tiktok": ("get_tikhub_tiktok_web_fetch_trending_searchwords", {}, lambda d: [w.get("trendingSearchWord") for w in d.get("trending_search_words") or []]),
-    "tiktok_tags": ("post_tikhub_tiktok_ads_get_trends_hashtag_list", {"country_code": "US", "time_range": 7, "limit": 50},
-                    lambda d: [w.get("hashtagName") for w in d.get("items") or []]),
+    # a POST tool: its arguments go inside "body" (AIsa rejects a top-level country_code)
+    "tiktok_tags": ("post_tikhub_tiktok_ads_get_trends_hashtag_list", {"body": {"country_code": "US", "time_range": 7, "limit": 50}},
+                    lambda d: [w.get("hashtagName") or w.get("hashtag_name") for w in d.get("items") or d.get("list")
+                               or (d.get("data") or {}).get("list") or (d.get("data") or {}).get("items") or []]),
     "reddit": ("get_tikhub_reddit_app_fetch_trending_searches", {"need_format": True},
                lambda d: [w.get("displayQuery") for w in d.get("trendingQueries") or []]),
 }
