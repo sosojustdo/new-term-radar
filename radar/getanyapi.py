@@ -83,17 +83,17 @@ def tweet_search(query: str, query_type: str = "Top") -> tuple[list[dict], int]:
 
 
 def search_volume(keywords: list[str], location: int, language: str = "en") -> tuple[dict[str, dict], int]:
-    """{keyword: {"volume", "month"}} from Google Ads, one call (up to 1,000 keywords, $0.108)."""
+    """{keyword: {"volume", "month", "months"}} from Google Ads, one call (up to 1,000 keywords, $0.108)."""
     kws = [k for k in keywords if 3 <= len(k) <= 80]
     if not kws:
         return {}, 0
     out, cost = run("seo.search_volume", {"keywords": kws, "location": location, "language": language})
     res = {}
     for r in (out.get("data") or {}).get("keywords") or []:
-        ms = r.get("monthlySearches") or []
-        last = max(ms, key=lambda m: (m.get("year", 0), m.get("month", 0))) if ms else None
-        res[r["keyword"]] = {"volume": int(r.get("searchVolume") or 0),
-                             "month": f"{last['year']}-{last['month']:02d}" if last else ""}
+        months = sorted((f"{m['year']}-{m['month']:02d}", int(m.get("searchVolume") or m.get("search_volume") or 0))
+                        for m in r.get("monthlySearches") or [] if m.get("year") and m.get("month"))
+        res[r["keyword"]] = {"volume": int(r.get("searchVolume") or 0), "month": months[-1][0] if months else "",
+                             "months": [list(m) for m in months]}     # oldest first, as usecases.volumes (curve.py)
     return res, cost
 
 

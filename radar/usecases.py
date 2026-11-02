@@ -20,7 +20,7 @@ For the day's new names this step:
   3. screens them: a second call scores how well the name answers each phrase, and the
      loosely related ones are dropped (a keyword taken from a passing comparison);
   4. looks the rest up: Google Ads monthly searches (one batch call);
-  5. reads Google Trends for the names and for the phrases with enough volume, twice
+  5. reads DataForSEO Trends (worldwide, through AIsa) for the names and for the phrases with enough volume, twice
      each: alone, for the shape of the curve (when it started rising, its peak, what it
      is doing now), and next to a benchmark keyword ("gpts" by default), for the size.
      A generic term's searches a day come from its own Google Ads volume, moved to today
@@ -37,8 +37,21 @@ no job shows yet; each name is therefore read twice, the day it appears and
 big a need is, not whether this release moved it; Trends tells that, but reads nothing
 for terms under a few hundred searches a month. Most proposed phrases have no volume.
 
+Then, for the rows rated prioritize or watch, three more readings, each switchable in the
+config: the word's age (wordage.py: when it first drew searches; a term from the last half
+year reads one step easier on page one), its markets (markets.py: searches and difficulty
+in several countries, the best market, the top region) and, for the prioritized rows, the
+shape of page one (serpshape.py: homepages against inner pages, platforms, exact titles).
+Four more cost nothing: the twelve months of searches the volume call already carries
+(curve.py: new since, peaked, falling, rising or steady), whether your own site ranks for the
+row already (yours.py: from the page-one results and Search Console, so the action is an
+update, an improvement or a new page), the forum threads and AI overview on page one
+(competition.py) and, for the prioritized rows, whether the exact-match .com is free
+(dotcom.py, RDAP).
+
 Costs seen in October 2026: $0.003 per name for the posts, $0.09 for the volume batch
 (up to 1,000 phrases), $0.0012 per Trends lookup (two per row of the table), plus the model's tokens.
+The three readings above add about $0.41 a run plus $0.004 a row (see each module).
 """
 from __future__ import annotations
 
@@ -52,7 +65,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
 
-from . import UA, aisa, competition, getanyapi, goanyapi, review, snap
+from . import UA, aisa, competition, curve, dotcom, getanyapi, goanyapi, markets, review, serpshape, snap, wordage, yours
 
 POSTS_KEPT = 12
 POST_CHARS = 400
@@ -280,9 +293,9 @@ def volumes(phrases: list[str], location_code: int) -> tuple[dict[str, dict], in
         "keywords": phrases, "location_code": location_code, "language_code": "en"}]}}])
     out = {}
     for r in ((data.get("vol") or {}).get("tasks") or [{}])[0].get("result") or []:
-        ms = r.get("monthly_searches") or []
-        out[r["keyword"]] = {"volume": int(r.get("search_volume") or 0),
-                             "month": f"{ms[0]['year']}-{ms[0]['month']:02d}" if ms else ""}
+        months = sorted((f"{m['year']}-{m['month']:02d}", int(m.get("search_volume") or 0)) for m in r.get("monthly_searches") or [])
+        out[r["keyword"]] = {"volume": int(r.get("search_volume") or 0), "month": months[-1][0] if months else "",
+                             "months": [list(m) for m in months]}     # oldest first, for the twelve-month curve (curve.py)
     return out, cost
 
 
@@ -551,7 +564,14 @@ def run(cfg: dict, state: Path, names: list[str], repos: dict[str, str], today: 
     series, c3 = fetch_series([r["phrase"] for r in rows], bench, today)
     local, c4, local_errors = country_series(rows, c) if goanyapi.key() and c.get("country_trends", True) else ({}, 0, [])
     daily = measure(rows, series, c["min_daily"], today, local)
+    acted, first = [r for r in rows if r["decision"] in ("prioritize", "watch")], [r for r in rows if r["decision"] == "prioritize"]
+    c6, age_errors = wordage.assess(acted, cfg, today)          # before the page-one check: a new term reads easier there
+    c7, market_errors = markets.assess(acted, cfg, {c["location_code"]: vol})
     c5, comp_errors = competition.assess(rows, cfg, state) if cfg.get("competition", {}).get("max_rows") else (0, [])
+    c8, serp_errors = serpshape.assess(first, cfg)              # prioritized before the page-one check could demote them
+    curve.assess(rows, cfg)                                      # free: the twelve months the volume call carried
+    _, own_errors = yours.assess(acted, cfg, today)              # after the page-one check: reads its ten results
+    _, com_errors = dotcom.assess([r for r in rows if r["decision"] == "prioritize"], cfg)
     order = {"prioritize": 0, "watch": 1, "skip": 2}
     rows.sort(key=lambda r: (order[r["decision"]], -(r.get("per_day") or 0), -(r.get("volume") or 0)))
     if not on_request:
@@ -566,10 +586,11 @@ def run(cfg: dict, state: Path, names: list[str], repos: dict[str, str], today: 
             "posts_error": "; ".join(f"{n}: {e['error']}" for n, e in ev.items() if e.get("error")),
             "related": use_related, "tails": {n: v for n, v in tails.items() if v}, "cosearch": cosearch,
             "related_errors": related_errors, "geo": c["related_geo"], "country_errors": local_errors,
-            "competition_errors": comp_errors, "cost_micros": cost + c0 + c2 + c3 + c4 + c5}
+            "competition_errors": comp_errors, "extra_errors": age_errors + market_errors + serp_errors + own_errors + com_errors,
+            "cost_micros": cost + c0 + c2 + c3 + c4 + c5 + c6 + c7 + c8}
 
 
-READ_KINDS = {"x", "hf", "breakout", "newsite", "revenue"}
+READ_KINDS = {"x", "hf", "breakout", "newsite", "revenue", "seller"}
 READ_MIN = 0.8
 
 

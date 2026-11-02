@@ -1,7 +1,7 @@
 """The radar's memory: every lead it reported, in one SQLite file (state/radar.db).
 
 record()          upserts today's leads.
-due()             leads old enough to check in Google Trends and not checked yet.
+due()             leads old enough to check in DataForSEO Trends and not checked yet.
 save_verdict()    hit / miss / no_data and how many days the radar was ahead.
 recent_sources()  X and Hugging Face leads the frequent job kept since yesterday.
 summary()         hit rate and median lead per signal.

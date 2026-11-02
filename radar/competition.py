@@ -8,13 +8,18 @@ a run, this reads:
   hold it, and whether ads show (someone pays for that click: there is money in the term);
 - the rating of each site there (GoAnyAPI, $0.002 a site, kept 30 days): `weak` counts the
   results on sites rated under 30, the slots a new site can take, and the weakest one is named;
+- from the same page, what else holds it besides the ten results (`features`: an AI overview,
+  an answer box, a forums block, videos, news) and the forum threads there (`forums`): an AI
+  overview takes clicks, and a thread on page one is where an answer reaches the searchers;
 - keyword difficulty (DataForSEO Labs, about $0.012 a call; often missing for a new term);
 - with a GoAnyAPI key, who already builds for the term and who pays for it: how many pages
   Google holds with the term in their title from the last month (`built`, 4 credits) and the
   domains running Google ads on it (`paid`, Ads transparency, 4 credits).
 
 `open`: three or more weak results, or difficulty under 20. `crowded`: no weak result and a
-difficulty of 40 or more, or unknown. `mixed` in between. A crowded `prioritize` becomes
+difficulty of 40 or more, or unknown. `mixed` in between. A term that first drew searches in
+the last half year (radar/wordage.py, `is_new`) is read one step easier (crowded -> mixed,
+mixed -> open): difficulty scores and ratings lag a new term. A crowded `prioritize` becomes
 `watch`: still rising, but page one belongs to strong sites. Without a GoAnyAPI key there are
 no ratings and only the difficulty speaks. In a name's first week page one is still forming
 (news, the maker's own pages): read it again at the second reading.
@@ -26,7 +31,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from pathlib import Path
 
-from . import aisa, goanyapi, snap
+from . import aisa, goanyapi, page_age, snap
 
 SERP_TOOL = "post_dataforseo_serp_google_organic_live"
 KD_TOOL = "post_dataforseo_labs_google_keyword_overview_live"
@@ -34,6 +39,7 @@ DR_DAYS = 30
 WORKERS = 4                 # ratings asked at once
 VIDEO = ("youtube.com", "tiktok.com", "vimeo.com")
 FORUM = ("reddit.com", "quora.com", "ycombinator.com", "stackoverflow.com", "stackexchange.com", "x.com", "facebook.com")
+FORUMS_KEPT = 5             # threads kept per term: where an answer reaches the people searching
 TOOL = re.compile(r"\b(generator|maker|editor|converter|creator|online|free|app|tool|detector|remover|upscaler|translator)\b", re.I)
 LIST = re.compile(r"\b(best|top|alternatives?|vs\.?|compared?|review(?:s|ed)?)\b|\b\d+\s+\w+", re.I)
 
@@ -50,22 +56,34 @@ def page_kind(domain: str, url: str, title: str) -> str:
     return "tool" if TOOL.search(title) or not path else "article"
 
 
-def page_one(keyword: str, location: int) -> tuple[dict, int]:
-    """{"results": [{"domain", "url", "title", "position", "kind"}], "ads", "features"} and the cost."""
+def threads(results: list[dict], items: list[dict]) -> list[dict]:
+    """The forum threads on page one: organic results on forums, then the "Discussions and
+    forums" block's entries; FORUMS_KEPT at most, each once."""
+    found = [{k: r[k] for k in ("url", "title", "domain")} for r in results if r["kind"] == "forum"]
+    for block in (i for i in items if i.get("type") == "discussions_and_forums"):
+        found += [{"url": e["url"], "title": e.get("title") or "", "domain": re.sub(r"^www\.", "", e.get("domain") or "")}
+                  for e in block.get("items") or [] if e.get("url")]
+    seen: set[str] = set()
+    return [f for f in found if not (f["url"] in seen or seen.add(f["url"]))][:FORUMS_KEPT]
+
+
+def page_one(keyword: str, location: int, language: str = "en", device: str = "desktop") -> tuple[dict, int]:
+    """{"results": [{"domain", "url", "title", "position", "kind"}], "ads", "features", "forums"} and the cost."""
     data, cost = aisa.call([{"call_id": "serp", "tool": SERP_TOOL, "arguments": {"body": [{
-        "keyword": keyword, "location_code": location, "language_code": "en", "depth": 10}]}}])
+        "keyword": keyword, "location_code": location, "language_code": language, "device": device, "depth": 10}]}}])
     items = (((data.get("serp") or {}).get("tasks") or [{}])[0].get("result") or [{}])[0].get("items") or []
     results = [{"domain": re.sub(r"^www\.", "", i.get("domain") or ""), "url": i.get("url") or "", "title": i.get("title") or "",
                 "position": i.get("rank_group")} for i in items if i.get("type") == "organic"][:10]
     for r in results:
         r["kind"] = page_kind(r["domain"], r["url"], r["title"])
     return {"results": results, "ads": any(i.get("type") == "paid" for i in items),
-            "features": sorted({i["type"] for i in items if i.get("type") not in ("organic", "paid")})}, cost
+            "features": sorted({i["type"] for i in items if i.get("type") not in ("organic", "paid")}),
+            "forums": threads(results, items)}, cost
 
 
-def difficulty(keywords: list[str], location: int) -> tuple[dict[str, int | None], int]:
+def difficulty(keywords: list[str], location: int, language: str = "en") -> tuple[dict[str, int | None], int]:
     data, cost = aisa.call([{"call_id": "kd", "tool": KD_TOOL, "arguments": {"body": [{
-        "keywords": keywords, "location_code": location, "language_code": "en"}]}}])
+        "keywords": keywords, "location_code": location, "language_code": language}]}}])
     items = ((((data.get("kd") or {}).get("tasks") or [{}])[0].get("result") or [{}])[0].get("items") or [])
     return {i["keyword"]: (i.get("keyword_properties") or {}).get("keyword_difficulty") for i in items}, cost
 
@@ -115,12 +133,18 @@ def supply(rows: list[dict]) -> tuple[int, list[str]]:
     return total, errors
 
 
-def verdict(weak: int | None, kd: int | None) -> str:
+EASIER = {"crowded": "mixed", "mixed": "open", "open": "open"}
+
+
+def verdict(weak: int | None, kd: int | None, new: bool = False) -> str:
+    """open, mixed or crowded; a `new` term one step easier."""
     if (weak is not None and weak >= 3) or (kd is not None and kd < 20):
-        return "open"
-    if (weak in (0, None)) and (kd is None or kd >= 40):
-        return "crowded"
-    return "mixed"
+        v = "open"
+    elif (weak in (0, None)) and (kd is None or kd >= 40):
+        v = "crowded"
+    else:
+        v = "mixed"
+    return EASIER[v] if new else v
 
 
 def assess(rows: list[dict], cfg: dict, state: Path) -> tuple[int, list[str]]:
@@ -157,10 +181,21 @@ def assess(rows: list[dict], cfg: dict, state: Path) -> tuple[int, list[str]]:
         kinds = {}
         for x in rated:
             kinds[x["kind"]] = kinds.get(x["kind"], 0) + 1
-        r["competition"] = {"verdict": verdict(weak, kd), "weak": weak, "kd": kd, "ads": p["ads"],
-                            "kinds": kinds, "features": p["features"],
-                            "weakest": {k: weakest[k] for k in ("domain", "dr", "position", "url")} if weakest else None}
+        r["competition"] = {"verdict": verdict(weak, kd, bool(r.get("is_new"))), "weak": weak, "kd": kd, "ads": p["ads"],
+                            "eased": bool(r.get("is_new")) and verdict(weak, kd) != verdict(weak, kd, True),
+                            "location_code": c["location_code"],
+                            # the ten results as read, for the SERP shape (radar/serpshape.py) to reuse
+                            "results": [{k: x[k] for k in ("domain", "url", "title", "position", "kind", "dr")} for x in rated],
+                            "kinds": kinds, "features": p["features"], "forums": p.get("forums", []),
+                            "weakest": {k: weakest[k] for k in ("domain", "dr", "position", "url")} if weakest else None,
+                            # the tool sites already ranking: ⑩ asks who else their owners run
+                            "tools": [{"domain": x["domain"], "dr": x["dr"]} for x in rated if x["kind"] == "tool"][:5]}
         if r["decision"] == "prioritize" and r["competition"]["verdict"] == "crowded":
             r["decision"], r["demoted"] = "watch", True
+    if c.get("page_age", True):
+        try:                                 # recorded only (radar/page_age.py): it never stops a run
+            page_age.record(picked, pages, state)
+        except (OSError, ValueError) as exc:
+            errors.append(f"page age: {exc}")
     spent, failed = supply([r for r in picked if r.get("competition")])
     return cost + spent, errors + failed

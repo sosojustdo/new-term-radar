@@ -7,12 +7,12 @@
     "url": "https://github.com/zhuyansen/new-term-radar",
     "source": "github"
   },
-  "version": "0.4.0",
+  "version": "0.6.1",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "new-term-radar",
-      "version": "0.4.0",
+      "version": "0.6.1",
       "runtimeHint": "uvx",
       "runtimeArguments": [
         {
@@ -35,7 +35,7 @@
       "environmentVariables": [
         {
           "name": "AISA_API_KEY",
-          "description": "AIsa key. X posts, search volumes, Google Trends and the models all go through it.",
+          "description": "AIsa key. X posts, search volumes, DataForSEO Trends and the models all go through it.",
           "isRequired": true,
           "isSecret": true
         },

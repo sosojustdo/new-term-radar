@@ -12,22 +12,25 @@ phrase someone with that problem would search.
 The daily run does the tutorial part for the leads marked ⚡ (a widely shared walkthrough of a
 manual workflow): what its viewers ask for is the one-click tool.
 
-App Store, Google Play and Trustpilot reviews are not reachable: AIsa runs synchronous calls
-only, and DataForSEO serves those reviews as tasks to post now and fetch later.
+Low-star App Store reviews come from Apple's own free feeds (iTunes Search, then each app's reviews
+RSS). Google Play and Trustpilot reviews are not reachable: AIsa runs synchronous calls only, and
+DataForSEO serves those reviews as tasks to post now and fetch later.
 """
 from __future__ import annotations
 
 import json
 import re
+import urllib.parse
+import urllib.request
 
-from . import aisa, goanyapi, social
+from . import UA, aisa, goanyapi, social
 
 EXTENSION = re.compile(r"(?:chromewebstore\.google\.com/detail|chrome\.google\.com/webstore/detail)/(?:[^/?#]+/)?([a-p]{32})")
 VIDEO = re.compile(r"youtube\.com/watch\?v=([\w-]{11})")
 MAX_ITEMS = 120
 SYSTEM = (
-    "You read complaints and questions about one kind of tool: low-star Chrome Web Store reviews, Reddit posts and "
-    "comments under tutorial videos. Group them into the GAPS they point at: what existing tools fail to do, what is "
+    "You read complaints and questions about one kind of tool: low-star Chrome Web Store and App Store reviews, Reddit "
+    "posts and comments under tutorial videos. Group them into the GAPS they point at: what existing tools fail to do, what is "
     "too hard or too slow, what costs too much, what people wish existed or ask to be automated. For each gap give "
     "a short label (under 10 words), its kind ('missing', 'too hard', 'quality', 'price' or 'wants a tool'), the "
     "indexes of the items that support it, and the 2 to 6 words someone with this problem would type into Google. "
@@ -125,18 +128,46 @@ def tutorials(term: str, c: dict) -> tuple[list[dict], int, list[str]]:
     return items, cost, errors
 
 
+def appstore(keyword: str, c: dict) -> tuple[list[dict], int, list[str]]:
+    """Low-star App Store reviews of the apps Apple's search returns for the keyword (free: iTunes Search and the
+    reviews RSS; AIsa cannot reach DataForSEO's App Store reviews, which are tasks)."""
+    items, errors = [], []
+    if c["apps"] <= 0:
+        return [], 0, []
+    try:
+        url = "https://itunes.apple.com/search?" + urllib.parse.urlencode({"term": keyword, "entity": "software", "limit": c["apps"]})
+        with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=30) as res:
+            apps = json.load(res).get("results", [])
+    except (OSError, ValueError) as exc:
+        return [], 0, [f"app search: {str(exc)[:100]}"]
+    for app in apps:
+        url = f"https://itunes.apple.com/us/rss/customerreviews/id={app['trackId']}/sortBy=mostRecent/json"
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": UA}), timeout=30) as res:
+                entries = json.load(res).get("feed", {}).get("entry", [])
+        except (OSError, ValueError) as exc:
+            errors.append(f"reviews of {app.get('trackName')}: {str(exc)[:80]}")
+            continue
+        for e in entries if isinstance(entries, list) else [entries]:
+            rating = int((e.get("im:rating") or {}).get("label") or 5)
+            text = f"{(e.get('title') or {}).get('label', '')}. {(e.get('content') or {}).get('label', '')}".strip(". ")
+            if text and rating <= c["max_stars"]:
+                items.append({"source": "appstore", "text": text, "rating": rating, "url": app.get("trackViewUrl") or ""})
+    return items, 0, errors
+
+
 def run(cfg: dict, keyword: str, extensions: list[str] | None = None) -> dict:
     """The pain points for a kind of tool, from reviews, Reddit and tutorial comments."""
     c, items, cost, errors = cfg["pains"], [], 0, []
     for fn in (lambda: chrome(keyword, list(extensions or []), c) if goanyapi.key() or extensions else ([], 0, ["no GOANYAPI_API_KEY: Chrome reviews skipped"]),
-               lambda: reddit(keyword, c), lambda: tutorials(keyword, c)):
+               lambda: reddit(keyword, c), lambda: tutorials(keyword, c), lambda: appstore(keyword, c)):
         got, spent, failed = fn()
         items, cost, errors = items + got, cost + spent, errors + failed
     try:
         gaps = group(c["model"], items)
     except aisa.AisaError as exc:
         gaps, errors = [], errors + [f"model: {exc}"]
-    by = {s: sum(1 for x in items if x["source"] == s) for s in ("chrome", "reddit", "youtube")}
+    by = {s: sum(1 for x in items if x["source"] == s) for s in ("chrome", "reddit", "youtube", "appstore")}
     return {"keyword": keyword, "items": len(items), "by_source": by, "gaps": gaps, "errors": errors, "cost_micros": cost}
 
 

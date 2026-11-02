@@ -3,14 +3,14 @@ from __future__ import annotations
 
 import re
 
-from . import opportunity, config, judge, usecases
+from . import asks, competition, opportunity, sellers, config, judge, usecases, yours
 from .i18n import t
 
 SHOWN = 20
 OTHER_TERMS = 15
 POSTS_SHOWN = 3   # posts quoted in full per term
 # signal key -> label key, in the order of how early the signal comes
-KINDS = ["x", "hf", "breakout", "sitemap", "newsite", "revenue", "ask", "usecase", "cosearch", "watch"]
+KINDS = ["x", "hf", "breakout", "sitemap", "newsite", "revenue", "ask", "seller", "builder", "feed", "money", "usecase", "cosearch", "watch"]
 
 
 def leads(cfg: dict, blocks: dict[str, dict]) -> tuple[list[dict], dict]:
@@ -118,8 +118,23 @@ def _new_site_lines(ns: dict, cfg: dict) -> list[str]:
     if not sites:
         return lines + [t("recent_none", why=ns.get("error") or t("newsite_none"))]
     lines += [t("newsite_cols"), "|---|---|---|---|---|"]
-    return lines + [f"| {'🆕 ' if r['new'] else ''}[{r['domain']}](https://{r['domain']}) | {r['created']} | {r['first_seen']} | "
-                    f"{r['etv']} | {r['keywords']} |" for r in sites]
+    lines += [f"| {'🆕 ' if r['new'] else ''}[{r['domain']}](https://{r['domain']}) | {r['created']} | {r['first_seen']} | "
+              f"{r['etv']} | {r['keywords']} |" for r in sites]
+    return lines + _site_word_lines([r for r in sites if r.get("words") is not None])
+
+
+def _site_word_lines(sites: list[dict]) -> list[str]:
+    """The first words each new site ranks for in the top 20 (radar/site_words.py)."""
+    if not sites:
+        return []
+    lines = ["", t("newsite_words_h")]
+    for r in sites:
+        said = "; ".join(("⏱ " if w["since"] else "") + t("newsite_word", word=_cell(w["word"]), pos=w["position"] or t("dash"),
+                                                           country=w["country"] or t("dash"), vol=w["volume"] or t("dash"),
+                                                           kd=t("dash") if w["kd"] is None else w["kd"]) for w in r["words"])
+        more = t("newsite_words_more", n=r["top"]) if r["top"] > len(r["words"]) else ""
+        lines.append(f"- {r['domain']}: {said or t('newsite_words_none')}{more}")
+    return lines
 
 
 def _revenue_lines(rv: dict, cfg: dict) -> list[str]:
@@ -147,22 +162,136 @@ def _asks_lines(ak: dict, cfg: dict) -> list[str]:
     if not rows and not quiet:
         return lines + [t("recent_none", why=ak.get("error") or t("asks_none", read=ak.get("read", 0), asks=ak.get("asks", 0)))]
     lines += [t("asks_intro", read=ak["read"], asks=ak["asks"], unsized=ak["unsized"], min=cfg["asks"]["min_volume"])]
+    ai_on = any(r.get("ai") for r in rows)
     if rows:
-        lines += ["", t("asks_cols"), "|---|---|---|---|---|---|"]
+        lines += ["", t("asks_cols") + (f" {t('ai_col')} |" if ai_on else ""), "|---|---|---|---|---|---|" + ("---|" if ai_on else "")]
     for row in rows:
         p = max(row["posts"], key=lambda x: x["score"])
         lines.append(f"| **{row['phrase']}**{t('asks_again') if row.get('again') else ''} | {len(row['posts'])} ({row['score']}) | "
-                     f"{', '.join('r/' + s for s in row['subreddits'][:3])} | {row['volume']:,} | {_page_one(row.get('competition'))} | "
-                     f"[{_cell(p['title'][:70])}]({p['url']}) |")
+                     f"{', '.join(asks.where(s) for s in row['subreddits'][:3])} | {row['volume']:,} | {_page_one(row.get('competition'))} | "
+                     f"[{_cell(p['title'][:70])}]({p['url']}) |" + (f" {_ai_cell(row.get('ai'))} |" if ai_on else ""))
+    lines += _ai_lines(rows, cfg)
     if quiet:
         lines += ["", t("asks_quiet_h", min=cfg["asks"]["min_volume"]), "", t("asks_quiet_cols"), "|---|---|---|---|"]
         for row in quiet:
             p = max(row["posts"], key=lambda x: x["score"])
-            lines.append(f"| {row['phrase']} | {len(row['posts'])} ({row['score']}) | {', '.join('r/' + s for s in row['subreddits'][:3])} | "
+            lines.append(f"| {row['phrase']} | {len(row['posts'])} ({row['score']}) | {', '.join(asks.where(s) for s in row['subreddits'][:3])} | "
                          f"[{_cell(p['title'][:80])}]({p['url']}) |")
     if ak.get("errors"):
         lines.append(t("asks_err", why="; ".join(ak["errors"][:3])))
     return lines + ["", t("asks_note")]
+
+
+ENGINE = {"chatgpt": "ChatGPT", "google": "Google AI Mode"}
+
+
+def _ai_cell(ai: dict | None) -> str:
+    """The tools AI answers name for a job, the first three; ✅ when one of your sites is cited."""
+    if not ai:
+        return t("dash")
+    names = list(dict.fromkeys(n for got in ai["by"].values() for n in got["names"]))
+    cell = (", ".join(names[:3]) + (f" +{len(names) - 3}" if len(names) > 3 else "")) if names else t("ai_none")
+    return cell + (" ✅" if ai.get("yours") else "")
+
+
+def _ai_lines(rows: list[dict], cfg: dict) -> list[str]:
+    asked = [r for r in rows if r.get("ai")]
+    if not asked:
+        return []
+    lines = ["", t("ai_h", prompt=cfg["ai_answers"]["prompt"])]
+    for r in asked:
+        parts = [t("ai_engine", engine=ENGINE.get(e, e), names=", ".join(g["names"]) or t("ai_none"), sites=", ".join(g["sites"]) or t("dash"))
+                 for e, g in r["ai"]["by"].items()]
+        lines.append(t("ai_line", job=r["phrase"], engines=" · ".join(parts)) + (t("ai_yours") if r["ai"]["yours"] else ""))
+    return lines + [t("ai_note")]
+
+
+def _builder_lines(bd: dict) -> list[str]:
+    if bd.get("skipped") or not bd.get("sites"):
+        return []
+    kinds_line = "、".join(f"{t('sk_' + k)} {n}" for k, n in (bd.get("by_kind") or {}).items() if n)
+    lines = ["", t("builders_h"), "", t("builders_intro", links=bd["links"], old=bd.get("old", 0), new=bd["new"]) + (f" {kinds_line}" if kinds_line else ""),
+             "", t("builders_cols"), "|---|---|---|---|"]
+    for s in bd["sites"]:
+        what = _cell((s["title"] + (" — " + s["description"] if s["description"] else ""))[:110]) or t("dash")
+        lines.append(f"| [{s['host']}](https://{s['host']}/) | {sellers.LABEL[s['platform']]} | {what} | {s['first_seen']} |")
+    return lines
+
+
+def _feed_lines(fd: dict) -> list[str]:
+    if fd.get("skipped"):
+        return []
+    lines = ["", t("feeds_h"), ""]
+    from .feeds import LABEL as WHERE
+    for name, items in fd.get("new", {}).items():
+        if items:
+            shown = "; ".join((f"[{i['name']}]({i['url']})" if i.get("url") else i["name"]) + (f" ({i['where']})" if i.get("where") else "")
+                              for i in items)
+            lines.append(f"- **{WHERE.get(name, name)}**: {_cell(shown)}")
+    if fd.get("first_run"):
+        lines.append(t("feeds_first", feeds=", ".join(WHERE.get(n, n) for n in fd["first_run"])))
+    if fd.get("errors"):
+        lines.append(t("feeds_err", why="; ".join(fd["errors"][:4])))
+    return lines if len(lines) > 3 else []
+
+
+def _money_lines(md: dict) -> list[str]:
+    if md.get("skipped"):
+        return []
+    lines = ["", t("money_h"), ""]
+    if md.get("no_key"):
+        return lines + [t("money_nokey")]
+    if md.get("portfolios"):
+        lines += [t("money_folios")] + [t("money_folio_row", site=r["site"], pub=r["pub"], sisters=", ".join(r["sisters"][:8]))
+                                        for r in md["portfolios"]]
+    if md.get("advertisers"):
+        lines += ["", t("money_ads")] + [t("money_ad_row", term=r["term"], names=", ".join(r["advertisers"][:10])) for r in md["advertisers"]]
+    if not md.get("portfolios") and not md.get("advertisers"):
+        lines.append(t("money_none"))
+    return lines
+
+
+def _side_lines(sd: dict) -> list[str]:
+    rows = [r for r in sd.get("rows") or [] if any(k in r for k in ("sites", "wiki", "entity", "discord"))]
+    if sd.get("skipped") or not rows:
+        return []
+    lines = ["", t("side_h"), "", t("side_cols"), "|---|---|---|---|---|"]
+    for r in rows:
+        sites = f"{r['sites'][0]} ({', '.join(r['sites'][1])})" if r.get("sites") and r["sites"][0] else (t("dash") if "sites" not in r else "0")
+        sites += " · whois" if r.get("sites_from") == "whois" and "sites" in r else ""
+        wiki = f"{r['wiki'][1]:,} / {r['wiki'][2]:,}" if r.get("wiki") and r["wiki"][0] else t("dash")
+        ent = r.get("entity") or {}
+        known = ent.get("type") or (t("side_taken", type=ent["taken"]) if ent.get("taken") else t("dash"))
+        lines.append(f"| {r['name']} | {sites} | {wiki} | {known} | {r.get('discord', t('dash'))} |")
+    return lines
+
+
+def _tail_lines(td: dict) -> list[str]:
+    if td.get("skipped") or not td.get("rows"):
+        return []
+    return ["", t("tails_h"), "", t("tails_cols"), "|---|---|"] + [f"| {r['phrase']} | {r['volume']:,} |" for r in td["rows"][:20]]
+
+
+def _seller_lines(sl: dict) -> list[str]:
+    if sl.get("skipped"):
+        return []
+    lines = ["", t("sellers_h"), ""]
+    rows = sl.get("sellers") or []
+    if not rows:
+        return lines + [t("recent_none", why="; ".join(sl.get("errors") or []) or sl.get("error") or t("sellers_none"))]
+    platforms = "、".join(sellers.LABEL.get(p, p) for p in sl.get("platforms") or sellers.PLATFORMS)
+    lines += [t("sellers_intro", links=sl["links"], old=sl.get("old", 0), new=sl["new"], platforms=platforms), "", t("sellers_cols"), "|---" * 8 + "|"]
+    for s in rows:
+        what = _cell((s["title"] + (" — " + s["description"] if s["description"] else ""))[:110]) or t("dash")
+        seen = f"{s['visits']:,}" if s["visits"] else t("dash")
+        ai = f" ({s['ai_share'] * 100:.1f}%)" if s.get("ai_share") is not None else ""
+        lines.append(f"| [{s['host']}](https://{s['host']}/) | {t('sk_' + s.get('kind', 'other'))} | {sellers.LABEL[s['platform']]} | {what} | "
+                     f"{seen} | {s.get('registered') or t('dash')} | {(s.get('top_source') or t('dash')) + ai} | {s['first_seen']} |")
+    if sl.get("errors"):
+        lines.append(t("sellers_err", why="; ".join(sl["errors"][:3])))
+    if sl.get("kind_error"):
+        lines.append(t("sellers_kind_err"))
+    return lines + ["", t("sellers_note")]
 
 
 def _tutorial_lines(tu: dict) -> list[str]:
@@ -239,6 +368,14 @@ def _status_lines(b: dict[str, dict], extra: dict[str, dict]) -> list[str]:
     ok = "" if bo.get("error") or bo.get("skipped") else t("st_breakout_ok", n=bo["searched"]) + \
         (t("st_breakout_first") if bo.get("first_run") else "")
     lines.append(t("st_breakout", state=_state(bo, ok)))
+    sl = b.get("seller", {"skipped": True})
+    if not sl.get("skipped"):
+        lines.append(t("st_sellers", state=_state(sl, "" if sl.get("error") else t("st_sellers_ok", links=sl["links"], old=sl.get("old", 0), new=sl["new"]))))
+    for key, label in (("builder", "st_builders"), ("feed", "st_feeds"), ("money", "st_money")):
+        blk = b.get(key, {"skipped": True})
+        if not blk.get("skipped"):
+            errs = blk.get("errors") or []
+            lines.append(t(label, state=blk.get("error") or ("; ".join(errs[:3]) if errs else "ok")))
     ak = b.get("ask", {"skipped": True})
     if not ak.get("skipped"):
         lines.append(t("st_asks", state=_state(ak, "" if ak.get("error") else t("st_asks_ok", read=ak["read"], asks=ak["asks"]))))
@@ -255,11 +392,21 @@ def _status_lines(b: dict[str, dict], extra: dict[str, dict]) -> list[str]:
     for key, label in (("judge", "st_judge"), ("record", "st_record")):
         if extra.get(key, {}).get("error"):
             lines.append(t(label, state=extra[key]["error"]))
+    timed = [(k, v["seconds"]) for k, v in [*b.items(), *extra.items()] if isinstance(v, dict) and v.get("seconds") is not None]
+    slow = sorted(((k, sec) for k, sec in timed if sec >= 60), key=lambda kv: -kv[1])
+    if timed:
+        total = sum(sec for _, sec in timed)
+        lines.append(t("st_time", total=_minutes(total), parts="、".join(f"{k} {_minutes(sec)}" for k, sec in slow) or t("dash")))
     return lines
 
 
+def _minutes(seconds: int) -> str:
+    return f"{seconds // 60} min" if seconds >= 60 else f"{seconds} s"
+
+
 def daily(cfg: dict, lead: list[dict], b: dict[str, dict], gsc: dict, rev: dict, summ: dict, extra: dict[str, dict]) -> str:
-    lines = [t("title"), *keyword_table(cfg, extra.get("usecases", {"skipped": True})), "", t("leads_h"), "", t("leads_cols"), "|---|---|---|---|---|---|"]
+    lines = [t("title"), *keyword_table(cfg, extra.get("usecases", {"skipped": True})), *_side_lines(extra.get("sidelights", {"skipped": True})),
+             "", t("leads_h"), "", t("leads_cols"), "|---|---|---|---|---|---|"]
     names_ = named(cfg, lead)
     for r in names_[:SHOWN]:
         ex = _cell(" / ".join(e[:50] for e in r["examples"][:2]))
@@ -281,12 +428,18 @@ def daily(cfg: dict, lead: list[dict], b: dict[str, dict], gsc: dict, rev: dict,
     lines += _new_site_lines(b.get("newsite", {"skipped": True}), cfg)
     lines += _revenue_lines(b.get("revenue", {"skipped": True}), cfg)
     lines += _asks_lines(b.get("ask", {"skipped": True}), cfg)
+    lines += _seller_lines(b.get("seller", {"skipped": True}))
+    lines += _builder_lines(b.get("builder", {"skipped": True}))
+    lines += _feed_lines(b.get("feed", {"skipped": True}))
+    lines += _money_lines(b.get("money", {"skipped": True}))
+    lines += _tail_lines(extra.get("tails", {"skipped": True}))
     lines += _tutorial_lines(extra.get("tutorials", {"skipped": True}))
     lines += _gsc_lines(gsc)
     lines += _review_lines(cfg, rev, summ)
     lines += _status_lines(b, extra)
-    lines.append(t("cost", cost=_cost(b["x"], rev, b.get("newsite", {}), b.get("ask", {}), extra.get("usecases", {}),
-                                      extra.get("tutorials", {}))))
+    lines.append(t("cost", cost=_cost(b["x"], rev, b.get("newsite", {}), b.get("ask", {}), b.get("seller", {}), extra.get("usecases", {}),
+                                      extra.get("tutorials", {}), b.get("builder", {}), b.get("feed", {}), b.get("money", {}),
+                                      extra.get("sidelights", {}), extra.get("tails", {}))))
     return "\n".join(lines) + "\n"
 
 
@@ -305,7 +458,152 @@ def _page_one(comp: dict | None) -> str:
         bits.append(t("pc_built", n=f"{comp['built']:,}"))
     if comp.get("paid"):
         bits.append(t("pc_paid", n=len(comp["paid"])))
+    return " · ".join(bits + _features(comp))
+
+
+FEATURES = ((("ai_overview",), "sf_ai"), (("featured_snippet", "answer_box"), "sf_answer"),
+            (("discussions_and_forums",), "sf_forums"), (("video", "short_videos"), "sf_video"), (("top_stories",), "sf_news"))
+
+
+def _features(comp: dict) -> list[str]:
+    """Marks for what holds page one besides the ten results; forum threads among the results count as forums."""
+    have = set(comp.get("features") or []) | ({"discussions_and_forums"} if comp.get("forums") else set())
+    return [t(key) for types, key in FEATURES if have & set(types)]
+
+
+BRACKETS = str.maketrans("[]", "()")
+
+
+def _age(r: dict) -> str:
+    """The first-searched cell: the week the term first drew interest, 🆕 when recent."""
+    a = r.get("age")
+    if not a or a.get("no_data"):
+        return t("dash")
+    if a.get("since_start"):
+        return t("age_before", day=a["first_seen"][:7])
+    return a["first_seen"] + (" " + t("age_new") if a.get("is_new") else "")
+
+
+def _num(n: int) -> str:
+    return f"{n / 1000:.1f}".rstrip("0").rstrip(".") + "k" if n >= 1000 else str(n)
+
+
+def _markets(m: dict | None) -> str:
+    """The markets cell, compact: best market first, then searches/KD per market, then the top region."""
+    if not m or not m.get("by"):
+        return t("dash")
+    bits = [f"**{t('mk_best', code=m['best'])}**"] if m.get("best") else []
+    bits += [f"{code} {_num(v['volume'])}" + (f"/{v['kd']}" if v.get("kd") is not None else "") for code, v in m["by"].items()]
+    if m.get("top_region"):
+        bits.append(t("mk_top", name=m["top_region"]["name"]))
     return " · ".join(bits)
+
+
+def _serp(sv: dict | None) -> str:
+    """The page-one shape cell: verdict, homepages against inner pages, platforms, exact titles."""
+    if not sv or not sv.get("verdict"):
+        return t("dash")
+    bits = [t("ss_" + sv["verdict"].replace("-", "_")), t("ss_counts", home=sv["homepages"], inner=sv["inner"], plat=sv["platforms"])]
+    if sv.get("exact_titles"):
+        bits.append(t("ss_exact", n=sv["exact_titles"]))
+    if sv.get("exact_home"):
+        bits.append(t("ss_exact_home"))
+    return " · ".join(bits)
+
+
+def _extra_lines(cfg: dict, uc: dict) -> list[str]:
+    """Under the table: what the three extra columns mean, #1 and #2 of the prioritized rows, failures."""
+    rows = uc["rows"]
+    lines = []
+    if any(r.get("age") or r.get("markets") or r.get("serp") for r in rows):
+        lines.append(t("extra_note", days=cfg["word_age"]["new_days"], platforms=", ".join(cfg["serp_shape"]["platforms"])))
+    tops = [(r["phrase"], r["serp"]["top"]) for r in rows if (r.get("serp") or {}).get("top")]
+    if tops:
+        link = lambda x: f"[{_cell(x['title']).translate(BRACKETS)[:70] or x['url']}]({x['url']})" if x else t("dash")  # noqa: E731
+        lines += ["", t("ss_top_h"), *[t("ss_top", phrase=ph, one=link(top[0]), two=link(top[1] if len(top) > 1 else None)) for ph, top in tops]]
+    if uc.get("extra_errors"):
+        lines += ["", t("ex_err", names="; ".join(uc["extra_errors"]))]
+    return lines
+
+
+def _pct(n: int | None) -> str:
+    return "?" if n is None else f"{n:+d}%"
+
+
+def _year(y: dict | None) -> str:
+    """The twelve-month cell: the curve, then its word."""
+    if not y:
+        return t("dash")
+    label = y["label"]
+    if label in ("rising", "falling"):
+        n, chg = (6, y["c6"]) if y.get("c6") is not None else (3, y.get("c3"))
+        word = t("yr_" + label, chg=_pct(chg), n=n)
+    elif label == "spiked":
+        word = t("yr_spiked", month=y["peak"], chg=_pct(y["from_peak"]))
+    else:
+        word = t("yr_" + label)
+    if y.get("since"):
+        word = t("yr_new", month=y["since"]) + " · " + word
+    return f"{y['spark']} {word}".strip()
+
+
+def _yours(y: dict | None) -> str:
+    """After the decision: where your site ranks already, and so the action."""
+    if not y:
+        return ""
+    where = (t("yo_serp", pos=y["serp"]["position"]) if y.get("serp")
+             else t("yo_gsc", pos=y["console"]["position"]) if y.get("console") else "")
+    return (f" · {where}" if where else "") + " → " + t("yo_" + y["action"])
+
+
+def _own_lines(cfg: dict, rows: list[dict]) -> list[str]:
+    """Under the table: what the → means, and the pages of yours that were found."""
+    read = [r for r in rows if r.get("yours")]
+    if not read:
+        return []
+    lines = ["", t("yo_note", domains=", ".join(yours.own_domains(cfg)))]
+    found = [r for r in read if r["yours"]["serp"] or r["yours"]["console"]]
+    if found:
+        lines += ["", t("yo_h")]
+    for r in found:
+        y, bits = r["yours"], []
+        if y["serp"]:
+            bits.append(t("yo_serp_line", pos=y["serp"]["position"], url=y["serp"]["url"]))
+        if y["console"]:
+            c = y["console"]
+            bits.append(t("yo_console_line", pos=c["position"], imp=c["impressions"], clicks=c["clicks"], days=cfg["yours"]["days"], url=c["page"]))
+        lines.append(f"- **{r['phrase']}**: " + "; ".join(bits))
+    return lines
+
+
+def _thread_lines(rows: list[dict]) -> list[str]:
+    """Under the table: the note on answers above the results, and the forum threads on page one, best-of searches first."""
+    comps = [r.get("competition") or {} for r in rows]
+    lines = ["", t("sf_note")] if any({"ai_overview", "featured_snippet", "answer_box"} & set(c.get("features") or []) for c in comps) else []
+    threaded = sorted((r for r in rows if (r.get("competition") or {}).get("forums")), key=lambda r: not competition.LIST.search(r["phrase"]))
+    if threaded:
+        lines += ["", t("sf_forums_h")]
+    for r in threaded:
+        links = " · ".join(f"[{_cell(f['title'] or f['domain']).translate(BRACKETS)[:70]}]({f['url']})" for f in r["competition"]["forums"][:3])
+        lines.append(f"- **{r['phrase']}**{t('sf_list') if competition.LIST.search(r['phrase']) else ''}: {links}")
+    return lines
+
+
+def _dot(d: dict) -> str:
+    if not d["taken"]:
+        return t("dc_free", domain=d["domain"])
+    return t("dc_taken", domain=d["domain"], day=d["registered"]) if d.get("registered") else t("dc_taken_nodate", domain=d["domain"])
+
+
+def _more_lines(cfg: dict, uc: dict) -> list[str]:
+    """Under the table, 0.7's readings: the twelve months, your pages, page-one features and threads, the .com."""
+    rows = uc["rows"]
+    lines = ["", t("yr_note")] if any(r.get("year") for r in rows) else []
+    lines += _own_lines(cfg, rows) + _thread_lines(rows)
+    checked = [r for r in rows if r.get("dot_com")]
+    if checked:
+        lines += ["", t("dc_h"), *[f"- **{r['phrase']}**: " + " · ".join(_dot(d) for d in r["dot_com"]) for r in checked], t("dc_note")]
+    return lines
 
 
 def _page_one_lines(cfg: dict, uc: dict) -> list[str]:
@@ -344,7 +642,7 @@ def keyword_table(cfg: dict, uc: dict) -> list[str]:
     lines += [t("uc_intro", names=", ".join(uc["names"]), proposed=uc["proposed"], relevant=uc["relevant"], kept=uc["kept"], min=c["min_volume"],
                 month=uc["volume_month"] or "?"),
               t("uc_bench", bench=uc["benchmark"], bench_daily=uc["bench_daily"]) if uc.get("bench_daily") else t("uc_bench_none", bench=uc["benchmark"]), "",
-              t("uc_cols", bench=uc["benchmark"]), "|---|---|---|---|---|---|---|---|---|---|---|---|"]
+              t("uc_cols", bench=uc["benchmark"]), "|" + "---|" * 16]
     for r in uc["rows"]:
         generic = r["kind"] == "generic"
         none = r.get("no_data")
@@ -357,9 +655,13 @@ def keyword_table(cfg: dict, uc: dict) -> list[str]:
             f"{r['per_day'] if 'per_day' in r else t('dash')} | {r.get('started') or t('dash')} | {peak} | "
             f"{t('dash') if none else r['peak_day']} | {'×' + str(r['momentum']) if r.get('momentum') is not None else t('dash')} | "
             f"{t('uc_now_none') if none else t('uc_now_' + r['now'])}{' (' + uc['geo'] + ')' if r.get('trend_geo') else ''} | "
-            f"{_page_one(r.get('competition'))} | {t('uc_' + r['decision'])}{' ↓' if r.get('demoted') else ''} |")
+            f"{_year(r.get('year'))} | {_age(r)} | {_markets(r.get('markets'))} | "
+            f"{_page_one(r.get('competition'))} | {_serp(r.get('serp'))} | "
+            f"{t('uc_' + r['decision'])}{' ↓' if r.get('demoted') else ''}{_yours(r.get('yours'))} |")
     lines += ["", t("uc_rules", min_daily=c["min_daily"])]
     lines += _page_one_lines(cfg, uc)
+    lines += _extra_lines(cfg, uc)
+    lines += _more_lines(cfg, uc)
     if any(r["kind"] == "generic" and r["brand"] for r in uc["rows"]):
         lines.append(t("uc_brand_note"))
     if any(r.get("trend_geo") for r in uc["rows"]):

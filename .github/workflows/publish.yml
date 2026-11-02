@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: python -m pip install build pytest mcp
+      - run: python -m pip install -r requirements.txt build pytest mcp
       - run: python -m pytest -q tests
       - run: python -m build
       - uses: actions/upload-artifact@v4

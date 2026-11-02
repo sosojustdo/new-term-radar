@@ -48,17 +48,43 @@ def _token(cfg: dict) -> str:
         return json.load(res)["access_token"]
 
 
-def _query(access: str, site: str, start: date, end: date, dimensions: list[str], fresh: bool) -> list[dict]:
+def _query(access: str, site: str, start: date, end: date, dimensions: list[str], fresh: bool,
+           filters: list[dict] | None = None) -> list[dict]:
     body = {"startDate": str(start), "endDate": str(end), "dimensions": dimensions, "rowLimit": ROW_LIMIT}
     if fresh:
         body["dataState"] = "all"
+    if filters:
+        body["dimensionFilterGroups"] = [{"filters": filters}]
     url = f"https://www.googleapis.com/webmasters/v3/sites/{urllib.parse.quote(site, safe='')}/searchAnalytics/query"
     req = urllib.request.Request(url, data=json.dumps(body).encode(), headers={
         "Authorization": f"Bearer {access}", "Content-Type": "application/json", "User-Agent": UA})
     with urllib.request.urlopen(req, timeout=60) as res:
         rows = json.load(res).get("rows", [])
-    return [{**dict(zip(dimensions, r["keys"])), "impressions": int(r["impressions"]), "clicks": int(r["clicks"])}
+    return [{**dict(zip(dimensions, r["keys"])), "impressions": int(r["impressions"]), "clicks": int(r["clicks"]),
+             "position": round(float(r.get("position") or 0), 1)}
             for r in rows if not _OPERATOR.search(r["keys"][0])]
+
+
+def _re2(text: str) -> str:
+    """A literal for Search Console's RE2 filter (Python's re.escape also escapes spaces, which RE2 refuses)."""
+    return re.sub(r"([\\.^$|?*+()\[\]{}])", r"\\\1", text)
+
+
+def positions(cfg: dict, phrases: list[str], today: date, days: int = 28) -> dict[str, dict]:
+    """{query: {"position", "impressions", "clicks", "page"}} for these exact queries over the last
+    `days` days, all countries and devices, in one call. A query on several of your pages is
+    read on the one with the most impressions; impressions and clicks are the query's total."""
+    access = _token(cfg)
+    end = today - timedelta(days=LAG_DAYS)
+    expr = "^(" + "|".join(_re2(p.lower()) for p in phrases) + ")$"
+    rows = _query(access, cfg["gsc"]["site"], end - timedelta(days=days - 1), end, ["query", "page"], True,
+                  [{"dimension": "query", "operator": "includingRegex", "expression": expr}])
+    out: dict[str, dict] = {}
+    for r in sorted(rows, key=lambda r: -r["impressions"]):
+        q = out.setdefault(r["query"].lower(), {"position": r["position"], "page": r["page"], "impressions": 0, "clicks": 0})
+        q["impressions"] += r["impressions"]
+        q["clicks"] += r["clicks"]
+    return out
 
 
 def fresh_queries(recent: list[dict], before: list[dict]) -> list[dict]:

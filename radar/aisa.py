@@ -21,6 +21,10 @@ from . import UA
 
 ROUTER = os.environ.get("AISA_ROUTER_BASE_URL", "https://tools.aisa.one") + "/v1/tool-router/aisa-batch-use"
 CHAT = os.environ.get("AISA_API_BASE_URL", "https://api.aisa.one") + "/v1/chat/completions"
+# DataForSEO through AIsa's REST passthrough. The tool router checks arguments against a schema that types
+# `filters` as objects, so DataForSEO's own filter syntax ([field, op, value] arrays joined by "and") is refused
+# there (whois overview, backlinks; reported to AIsa on 2026-10-15). The passthrough takes it as DataForSEO does.
+REST = os.environ.get("AISA_API_BASE_URL", "https://api.aisa.one") + "/apis/v1/dataforseo/"
 MAX_CALLS = 20      # the router's own limit per batch
 BATCH = 5           # what call_all sends at once, about 50 s a batch
 TIMEOUT = 240
@@ -54,7 +58,7 @@ def _no_key() -> str:
     raise AisaError("no AIsa key: set AISA_API_KEY, or log in with the AIsa CLI (`aisa login`)")
 
 
-def _post(url: str, body: dict, timeout: int) -> dict:
+def _post(url: str, body, timeout: int) -> dict:
     req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST", headers={
         "Content-Type": "application/json", "Authorization": f"Bearer {key()}",
         "User-Agent": UA, "x-aisa-source": "new-term-radar"})
@@ -94,6 +98,15 @@ def call_all(calls: list[dict]) -> tuple[dict[str, dict], int]:
         out.update(data)
         cost += c
     return out, cost
+
+
+def rest(path: str, task: dict) -> tuple[dict, int]:
+    """One DataForSEO live task through the passthrough: (its first result, cost in micro-USD)."""
+    body = _post(REST + path, [task], TIMEOUT)
+    t = (body.get("tasks") or [{}])[0]
+    if body.get("status_code") != 20000 or t.get("status_code") != 20000:
+        raise AisaError(str(t.get("status_message") or body.get("status_message") or body)[:200])
+    return (t.get("result") or [{}])[0] or {}, int(round(float(body.get("cost") or t.get("cost") or 0) * 1e6))
 
 
 def chat(model: str, system: str, user: str, max_tokens: int = 1500) -> str:

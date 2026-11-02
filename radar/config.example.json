@@ -1,0 +1,52 @@
+{
+  "lang": "en",
+
+  "x_accounts": {
+    "labs": ["AnthropicAI", "claudeai", "OpenAI", "OpenAIDevs", "GoogleDeepMind", "GoogleAIStudio",
+             "Alibaba_Qwen", "deepseek_ai", "Kimi_Moonshot", "MiniMax__AI", "Zai_org", "xai",
+             "AIatMeta", "MistralAI", "huggingface", "cursor_ai",
+             "Kling_ai", "runwayml", "pika_labs", "LumaLabsAI", "Hailuo_AI", "higgsfield_ai", "ViduAI_official", "Alibaba_Wan", "dreamina_ai", 
+             "midjourney", "krea_ai"],
+    "bloggers": ["dotey", "op7418", "_akhaliq", "TeksEdge", "simonw", "swyx", "karpathy", "rowancheung"]
+  },
+
+  "sitemaps": {
+    "glama":         {"index": "https://glama.ai/sitemap.xml", "shards": "/(mcp-servers|mcp-remote-servers)/\\d+\\.xml$|blog-posts", "pause": 2},
+    "mcp.so":        {"index": "https://mcp.so/sitemap.xml", "shards": "section=(servers|agents|cli|clients|posts)\\b", "pause": 2},
+    "lobehub-mcp":   {"index": "https://lobehub.com/sitemap/mcp.xml", "pause": 5, "strip_locale": true},
+    "lobehub-skills": {"index": "https://lobehub.com/sitemap/skills.xml", "pause": 5, "strip_locale": true},
+    "toolify":       {"index": "https://www.toolify.ai/sitemap.xml", "shards": "sitemap_tools_(1[6-9]|[2-9]\\d)\\.xml$", "pause": 5, "strip_locale": true},
+    "aixploria":     {"index": "https://www.aixploria.com/sitemap.xml", "shards": "sitemap-posttype-post\\.20(2[6-9]|[3-9]\\d)\\d{2}\\.xml$", "pause": 2},
+    "ai-bot.cn":     {"index": "https://ai-bot.cn/sitemap.xml", "pause": 3},
+    "opentools":     {"index": "https://opentools.ai/sitemap.xml", "shards": "/(tools|llms|mcp)-sitemap\\.xml$", "pause": 2},
+    "dang":          {"index": "https://dang.ai/sitemap.xml", "pause": 2},
+    "clipfly":       {"index": "https://www.clipfly.ai/sitemaps/en.xml", "pause": 2, "strip_locale": true},
+    "aitoptools":    {"index": "https://aitoptools.com/sitemap.xml", "pause": 2},
+    "futurepedia":   {"index": "https://www.futurepedia.io/sitemap_tools.xml", "pause": 2}
+  },
+
+  "topics": {
+    "AI video": "\\bvideos?\\b|animat|avatar|lip ?sync|seedance|\\bveo\\b|\\bsora\\b|kling|hailuo|remotion|hyperframes"
+  },
+
+  "known_terms": ["claude code", "remotion"],
+  "stop_words": [],
+
+  "judge": {"model": "gpt-4.1-mini", "min_score": 0.5},
+  "breakout": {"window_days": 14, "min_stars": 300, "velocity_min": 200, "delta_min": 400},
+  "new_sites": {"queries": {"ai": "%ai%", "video": "%video%"}, "weekday": 0, "words": 10},
+  "revenue": {"weekday": 0, "pages_growth": 3, "pages_new": 3, "min_revenue_usd": 500, "category": "", "max_leads": 10},
+  "competition": {"max_rows": 8, "weak_dr": 30, "location_code": 2840, "page_age": true},
+  "word_age": {"enabled": true, "time_range": "past_5_years", "new_days": 180},
+  "markets": {"enabled": true, "codes": ["US", "DE", "FR", "JP"], "difficulty": true, "top_region": true, "locations": {}},
+  "serp_shape": {"enabled": true, "location_code": 2840, "language_code": "en", "device": "desktop",
+                 "platforms": ["github.com", "medium.com", "sites.google.com", "*.github.io", "reddit.com", "youtube.com", "wikipedia.org"]},
+  "yours": {"enabled": true, "domains": [], "days": 28},
+  "year_curve": {"enabled": true},
+  "dot_com": {"enabled": true, "max_rows": 8},
+  "ai_answers": {"enabled": false, "engines": ["chatgpt"], "max_rows": 6, "prompt": "What is the best tool to {job}?", "location_code": 2840, "language_code": "en"},
+  "review": {"after_days": 14, "per_day": 5},
+  "usecases": {"per_day": 5, "model": "claude-sonnet-4-6", "benchmark": "gpts", "min_volume": 50, "min_daily": 300, "related": true, "related_geo": "US", "country_trends": true, "country_min_volume": 1000, "country_max": 8},
+
+  "gsc": {}
+}

@@ -1,4 +1,4 @@
-"""The radar's review: check every lead in Google Trends two weeks later.
+"""The radar's review: check every lead in DataForSEO Trends two weeks later.
 
 review()  takes up to `per_day` leads first seen `after_days` ago or earlier and not yet
           checked, asks DataForSEO Trends (through AIsa) about each search variant, and

@@ -1,117 +1,129 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1520" height="1912" viewBox="0 0 760 956" font-family="Hiragino Sans GB, PingFang SC, Noto Sans CJK SC, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1520" height="2132" viewBox="0 0 760 1066" font-family="Hiragino Sans GB, PingFang SC, Noto Sans CJK SC, sans-serif">
 <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
-<rect width="760" height="956" fill="#FFFFFF"/>
-<path id="p1" d="M110 100 L330 140" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
-<path id="p2" d="M290 100 L360 140" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
-<path id="p3" d="M470 100 L400 140" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
-<path id="p4" d="M650 100 L430 140" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
-<path id="p6" d="M220 179 L240 179" fill="none" stroke="#7F77DD" stroke-width="1.4" marker-end="url(#arrow)"/>
-<path id="p7" d="M540 179 L520 179" fill="none" stroke="#7F77DD" stroke-width="1.4" marker-end="url(#arrow)"/>
-<path id="p7b" d="M730 179 L748 179 L748 432 L730 432" fill="none" stroke="#7F77DD" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect width="760" height="1066" fill="#FFFFFF"/>
+<path id="p1" d="M110 116 L330 140" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+<path id="p2" d="M290 116 L360 140" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+<path id="p3" d="M470 116 L400 140" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+<path id="p4" d="M650 116 L430 140" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+<path id="p6" d="M220 179 L240 179" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+<path id="p7" d="M540 179 L520 179" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+<path id="p8b" d="M220 262 L231 262 L231 200 L240 200" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+<path id="p7b" d="M730 179 L748 179 L748 432 L730 432" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
 <path id="p5" d="M380 218 L380 246" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#arrow)"/>
 <path id="p8" d="M300 290 L130 318" fill="none" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrow)"/>
 <path id="p9" d="M440 290 L495 318" fill="none" stroke="#378ADD" stroke-width="1" marker-end="url(#arrow)"/>
-<path id="p10" d="M370 506 L370 474" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
-<path id="p11" d="M615 506 L615 474" fill="none" stroke="#378ADD" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
-<path id="p12" d="M130 378 L130 646 L170 646" fill="none" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrow)"/>
-<path id="p13" d="M260 446 L245 446 L245 610" fill="none" stroke="#378ADD" stroke-width="1" marker-end="url(#arrow)"/>
-<path id="p14" d="M590 738 L650 738 L650 646 L590 646" fill="none" stroke="#888780" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+<path id="p15" d="M495 462 L495 480" fill="none" stroke="#7F77DD" stroke-width="1.4" marker-end="url(#arrow)"/>
+<path id="p10" d="M370 616 L370 584" fill="none" stroke="#D85A30" stroke-width="1" marker-end="url(#arrow)"/>
+<path id="p11" d="M615 616 L615 584" fill="none" stroke="#378ADD" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+<path id="p12" d="M130 378 L130 756 L170 756" fill="none" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrow)"/>
+<path id="p13" d="M260 446 L245 446 L245 720" fill="none" stroke="#378ADD" stroke-width="1" marker-end="url(#arrow)"/>
+<path id="p14" d="M590 848 L650 848 L650 756 L590 756" fill="none" stroke="#888780" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
 <g font-size="14" text-anchor="middle">
-<rect x="30" y="36" width="160" height="64" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
-<text x="110.0" y="55.0" fill="#712B13" font-weight="500">① X and HF</text>
-<text x="110.0" y="74.0" fill="#993C1D" font-size="12">every 8 hours</text>
-<text x="110.0" y="90.5" fill="#534AB7" font-size="12" font-weight="600">trending HF Spaces</text>
-<rect x="158" y="30" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="172" y="41" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
-<rect x="210" y="36" width="160" height="64" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
-<text x="290.0" y="64.0" fill="#712B13" font-weight="500">② GitHub</text>
-<text x="290.0" y="83.0" fill="#993C1D" font-size="12">breakout repos</text>
-<rect x="390" y="36" width="160" height="64" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
-<text x="470.0" y="55.0" fill="#712B13" font-weight="500">③ Sitemaps</text>
-<text x="470.0" y="74.0" fill="#993C1D" font-size="12">new pages · new sites</text>
-<text x="470.0" y="90.5" fill="#534AB7" font-size="12" font-weight="600">8 AI tool directories</text>
+<rect x="30" y="36" width="160" height="80" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="110.0" y="63.0" fill="#712B13" font-weight="500">① X and HF</text>
+<text x="110.0" y="82.0" fill="#993C1D" font-size="12">every 8 hours</text>
+<text x="110.0" y="98.5" fill="#993C1D" font-size="12">trending HF Spaces</text>
+<rect x="210" y="36" width="160" height="80" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="290.0" y="72.0" fill="#712B13" font-weight="500">② GitHub</text>
+<text x="290.0" y="91.0" fill="#993C1D" font-size="12">breakout repos</text>
+<rect x="390" y="36" width="160" height="80" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="470.0" y="54.0" fill="#712B13" font-weight="500">③ Sitemaps</text>
+<text x="470.0" y="73.0" fill="#993C1D" font-size="12">new pages · new sites</text>
+<text x="470.0" y="89.5" fill="#993C1D" font-size="12">8 AI tool directories</text>
+<text x="470.0" y="106.0" fill="#534AB7" font-size="12" font-weight="600">new sites' top-20 words</text>
 <rect x="518" y="30" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="532" y="41" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
-<rect x="570" y="36" width="160" height="64" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
-<text x="650.0" y="64.0" fill="#712B13" font-weight="500">④ Search Console</text>
-<text x="650.0" y="83.0" fill="#993C1D" font-size="12">optional</text>
-<rect x="30" y="140" width="190" height="78" rx="4" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/>
-<text x="125.0" y="166.0" fill="#3C3489" font-weight="500">⑥ What people pay for</text>
-<text x="125.0" y="185.0" fill="#534AB7" font-size="12">TrustMRR · weekly</text>
-<text x="125.0" y="201.5" fill="#534AB7" font-size="12">fastest growing · from $0</text>
-<rect x="188" y="134" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="202" y="145" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
+<rect x="570" y="36" width="160" height="80" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="650.0" y="72.0" fill="#712B13" font-weight="500">④ Search Console</text>
+<text x="650.0" y="91.0" fill="#993C1D" font-size="12">optional</text>
+<rect x="30" y="140" width="190" height="78" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="125.0" y="166.0" fill="#712B13" font-weight="500">⑥ What people pay for</text>
+<text x="125.0" y="185.0" fill="#993C1D" font-size="12">TrustMRR · weekly</text>
+<text x="125.0" y="201.5" fill="#993C1D" font-size="12">fastest growing · from $0</text>
 <rect x="240" y="140" width="280" height="78" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
 <text x="380.0" y="166.0" fill="#444441" font-weight="500">Name judge: a name, or a word?</text>
 <text x="380.0" y="185.0" fill="#5F5E5A" font-size="12">a score of 0.5 or more stays</text>
-<text x="380.0" y="201.5" fill="#534AB7" font-size="12" font-weight="600">format: video>voice>image · ⚡ one-click</text>
-<rect x="488" y="134" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="502" y="145" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
-<rect x="540" y="140" width="190" height="78" rx="4" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/>
-<text x="635.0" y="166.0" fill="#3C3489" font-weight="500">⑦ Reddit asks</text>
-<text x="635.0" y="185.0" fill="#534AB7" font-size="12">12 phrasings · weekly</text>
-<text x="635.0" y="201.5" fill="#534AB7" font-size="12">the jobs people want done</text>
+<text x="380.0" y="201.5" fill="#5F5E5A" font-size="12">format: video>voice>image · ⚡ one-click</text>
+<rect x="540" y="140" width="190" height="78" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="635.0" y="157.0" fill="#712B13" font-weight="500">⑦ Reddit asks</text>
+<text x="635.0" y="176.0" fill="#993C1D" font-size="12">12 phrasings · weekly</text>
+<text x="635.0" y="192.5" fill="#993C1D" font-size="12">the jobs people want done</text>
+<text x="635.0" y="209.0" fill="#534AB7" font-size="12" font-weight="600">what ChatGPT recommends</text>
 <rect x="698" y="134" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="712" y="145" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
+<rect x="30" y="230" width="190" height="64" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="125.0" y="249.0" fill="#712B13" font-weight="500">⑧ Started selling</text>
+<text x="125.0" y="268.0" fill="#993C1D" font-size="12">payment links · weekly</text>
+<text x="125.0" y="284.5" fill="#534AB7" font-size="12" font-weight="600">8 platforms · builders</text>
+<rect x="188" y="224" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="202" y="235" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
 <rect x="240" y="246" width="280" height="44" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
 <text x="380.0" y="273.0" fill="#444441" font-weight="500">Drop the terms you already cover</text>
 <rect x="30" y="318" width="200" height="60" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
 <text x="130.0" y="335.0" fill="#085041" font-weight="500">Sources report (every 8 h)</text>
 <text x="130.0" y="354.0" fill="#0F6E56" font-size="12">only on a new name</text>
 <text x="130.0" y="370.5" fill="#0F6E56" font-size="12">with the posts</text>
-<rect x="260" y="318" width="470" height="156" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<rect x="260" y="318" width="470" height="266" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
 <text x="495.0" y="344.0" fill="#0C447C" font-weight="500">Keyword table: names + generic terms</text>
 <text x="495.0" y="363.0" fill="#185FA5" font-size="12">model phrases → screen → volume → Trends</text>
-<rect x="276" y="388" width="438" height="74" rx="4" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/>
-<text x="495.0" y="412.0" fill="#3C3489" font-weight="500">Page one</text>
-<text x="495.0" y="431.0" fill="#534AB7" font-size="12">weak sites · KD · ads · pages built · advertisers</text>
-<text x="495.0" y="447.5" fill="#534AB7" font-size="12">a crowded "prioritize" becomes "watch ↓"</text>
-<rect x="682" y="382" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="696" y="393" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
-<rect x="260" y="506" width="220" height="72" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
-<text x="370.0" y="529.0" fill="#712B13" font-weight="500">Evidence (AIsa)</text>
-<text x="370.0" y="548.0" fill="#993C1D" font-size="12">top posts · README</text>
-<text x="370.0" y="564.5" fill="#534AB7" font-size="12" font-weight="600">a paying product's own words</text>
-<rect x="448" y="500" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="462" y="511" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
-<rect x="500" y="506" width="230" height="72" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="1" stroke-dasharray="5 3"/>
-<text x="615.0" y="529.0" fill="#0C447C" font-weight="500">GoAnyAPI (optional)</text>
-<text x="615.0" y="548.0" fill="#185FA5" font-size="12">related queries · US curve</text>
-<text x="615.0" y="564.5" fill="#185FA5" font-size="11">by 饭特稀 | Fentix @fantexi997</text>
-<rect x="170" y="610" width="420" height="72" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
-<text x="380.0" y="633.0" fill="#085041" font-weight="500">Daily report (once a day)</text>
-<text x="380.0" y="652.0" fill="#0F6E56" font-size="12">keyword table first · leads in radar.db</text>
-<text x="380.0" y="668.5" fill="#534AB7" font-size="12" font-weight="600">⑥ revenue · ⑦ asks · ⚡ what viewers ask</text>
-<rect x="558" y="604" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="572" y="615" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
-<rect x="170" y="710" width="420" height="56" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-<text x="380.0" y="734.0" fill="#444441" font-weight="500">Google Trends check, 14 days later</text>
-<text x="380.0" y="753.0" fill="#5F5E5A" font-size="12">names and generic terms · last two days left out</text>
-<rect x="30" y="832" width="160" height="72" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
-<text x="110.0" y="855.0" fill="#444441" font-weight="500">Command line</text>
-<text x="110.0" y="874.0" fill="#5F5E5A" font-size="12">daily · sources</text>
-<text x="110.0" y="890.5" fill="#5F5E5A" font-size="12">keywords · leads</text>
-<rect x="210" y="832" width="160" height="72" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
-<text x="290.0" y="855.0" fill="#0C447C" font-weight="500">3 Agent Skills</text>
-<text x="290.0" y="874.0" fill="#185FA5" font-size="12">one run,</text>
-<text x="290.0" y="890.5" fill="#185FA5" font-size="12">or its two halves</text>
-<rect x="390" y="832" width="160" height="72" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
-<text x="470.0" y="855.0" fill="#0C447C" font-weight="500">MCP server</text>
-<text x="470.0" y="874.0" fill="#185FA5" font-size="12">leads · keyword table</text>
-<text x="470.0" y="890.5" fill="#185FA5" font-size="12">run</text>
-<rect x="570" y="832" width="160" height="72" rx="4" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/>
-<text x="650.0" y="855.0" fill="#3C3489" font-weight="500">pains command</text>
-<text x="650.0" y="874.0" fill="#534AB7" font-size="12">Chrome reviews</text>
-<text x="650.0" y="890.5" fill="#534AB7" font-size="12">Reddit · tutorials</text>
-<rect x="698" y="826" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="712" y="837" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
+<rect x="276" y="388" width="438" height="74" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="495.0" y="412.0" fill="#0C447C" font-weight="500">Page one</text>
+<text x="495.0" y="431.0" fill="#185FA5" font-size="12">weak sites · KD · ads · pages built · advertisers</text>
+<text x="495.0" y="447.5" fill="#185FA5" font-size="12">a crowded "prioritize" becomes "watch ↓"</text>
+<rect x="276" y="480" width="438" height="92" rx="4" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/>
+<text x="495.0" y="504.0" fill="#3C3489" font-weight="500">Word age · Markets · Page-one shape · 12 months</text>
+<text x="495.0" y="523.0" fill="#534AB7" font-size="12">first searched · US DE FR JP volume + KD · best market</text>
+<text x="495.0" y="539.5" fill="#534AB7" font-size="12">top-10 shape · threads and AI overview · exact-match .com</text>
+<text x="495.0" y="556.0" fill="#534AB7" font-size="12">your rank → update, improve or new page</text>
+<rect x="682" y="474" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="696" y="485" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
+<rect x="260" y="616" width="220" height="72" rx="4" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+<text x="370.0" y="639.0" fill="#712B13" font-weight="500">Evidence (AIsa)</text>
+<text x="370.0" y="658.0" fill="#993C1D" font-size="12">top posts · README</text>
+<text x="370.0" y="674.5" fill="#993C1D" font-size="12">a paying product's own words</text>
+<rect x="500" y="616" width="230" height="72" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="1" stroke-dasharray="5 3"/>
+<text x="615.0" y="639.0" fill="#0C447C" font-weight="500">GoAnyAPI (optional)</text>
+<text x="615.0" y="658.0" fill="#185FA5" font-size="12">related queries · US curve</text>
+<text x="615.0" y="674.5" fill="#185FA5" font-size="11">by 饭特稀 | Fentix @fantexi997</text>
+<rect x="170" y="720" width="420" height="84" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text x="380.0" y="740.0" fill="#085041" font-weight="500">Daily report (once a day)</text>
+<text x="380.0" y="759.0" fill="#0F6E56" font-size="12">keyword table first · leads in radar.db</text>
+<text x="380.0" y="775.5" fill="#0F6E56" font-size="12">⑥ revenue · ⑦ asks · ⑧ sellers · ⚡ viewers ask</text>
+<text x="380.0" y="792.0" fill="#534AB7" font-size="12" font-weight="600">⑨ just listed · ⑩ money · side evidence</text>
+<rect x="558" y="714" width="28" height="15" rx="7.5" fill="#534AB7"/><text x="572" y="725" font-size="10" fill="#FFFFFF" font-weight="600">NEW</text>
+<rect x="170" y="820" width="420" height="56" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="380.0" y="844.0" fill="#444441" font-weight="500">DataForSEO Trends check, 14 days later</text>
+<text x="380.0" y="863.0" fill="#5F5E5A" font-size="12">names and generic terms · last two days left out</text>
+<rect x="30" y="942" width="160" height="72" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="110.0" y="965.0" fill="#444441" font-weight="500">Command line</text>
+<text x="110.0" y="984.0" fill="#5F5E5A" font-size="12">daily · sources</text>
+<text x="110.0" y="1000.5" fill="#5F5E5A" font-size="12">keywords · leads</text>
+<rect x="210" y="942" width="160" height="72" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="290.0" y="965.0" fill="#0C447C" font-weight="500">3 Agent Skills</text>
+<text x="290.0" y="984.0" fill="#185FA5" font-size="12">one run,</text>
+<text x="290.0" y="1000.5" fill="#185FA5" font-size="12">or its two halves</text>
+<rect x="390" y="942" width="160" height="72" rx="4" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+<text x="470.0" y="965.0" fill="#0C447C" font-weight="500">MCP server</text>
+<text x="470.0" y="984.0" fill="#185FA5" font-size="12">leads · keyword table</text>
+<text x="470.0" y="1000.5" fill="#185FA5" font-size="12">run</text>
+<rect x="570" y="942" width="160" height="72" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text x="650.0" y="965.0" fill="#444441" font-weight="500">pains command</text>
+<text x="650.0" y="984.0" fill="#5F5E5A" font-size="12">Chrome reviews</text>
+<text x="650.0" y="1000.5" fill="#5F5E5A" font-size="12">Reddit · tutorials</text>
 </g>
-<path d="M30 808 H730" stroke="#D3D1C7" stroke-width="0.5" fill="none"/><text x="30" y="824" font-size="12" fill="#5F5E5A" font-weight="500">Four ways in, one engine</text><text x="730" y="311" text-anchor="end" font-size="11" fill="#185FA5">Idea: 子木 @CoderJeffLee</text>
-<rect x="30" y="924" width="14" height="14" rx="3" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/><text x="52" y="936" font-size="12" fill="#444441">signals</text><rect x="142" y="924" width="14" height="14" rx="3" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/><text x="164" y="936" font-size="12" fill="#444441">reports</text><rect x="253" y="924" width="14" height="14" rx="3" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/><text x="275" y="936" font-size="12" fill="#444441">keyword table</text><rect x="408" y="924" width="14" height="14" rx="3" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/><text x="430" y="936" font-size="12" fill="#444441">new in 0.3–0.4</text><path d="M570 931 H600" stroke="#888780" stroke-width="1" stroke-dasharray="4 3" fill="none"/><text x="608" y="936" font-size="12" fill="#444441">hit rate fed back</text>
+<path d="M30 918 H730" stroke="#D3D1C7" stroke-width="0.5" fill="none"/><text x="30" y="934" font-size="12" fill="#5F5E5A" font-weight="500">Four ways in, one engine</text><text x="730" y="311" text-anchor="end" font-size="11" fill="#185FA5">Idea: 子木 @CoderJeffLee</text>
+<rect x="30" y="1034" width="14" height="14" rx="3" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/><text x="52" y="1046" font-size="12" fill="#444441">signals</text><rect x="145" y="1034" width="14" height="14" rx="3" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/><text x="167" y="1046" font-size="12" fill="#444441">reports</text><rect x="260" y="1034" width="14" height="14" rx="3" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/><text x="282" y="1046" font-size="12" fill="#444441">keyword table</text><rect x="419" y="1034" width="14" height="14" rx="3" fill="#EEEDFE" stroke="#534AB7" stroke-width="1.2"/><text x="441" y="1046" font-size="12" fill="#444441">new in 0.6.0</text><path d="M570 1041 H600" stroke="#888780" stroke-width="1" stroke-dasharray="4 3" fill="none"/><text x="608" y="1046" font-size="12" fill="#444441">hit rate fed back</text>
 <circle r="4" fill="#D85A30"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.0s"><mpath href="#p1"/></animateMotion></circle>
 <circle r="4" fill="#D85A30"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.6s"><mpath href="#p2"/></animateMotion></circle>
 <circle r="4" fill="#D85A30"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1.2s"><mpath href="#p3"/></animateMotion></circle>
 <circle r="4" fill="#D85A30"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1.8s"><mpath href="#p4"/></animateMotion></circle>
-<circle r="4.5" fill="#7F77DD"><animateMotion dur="1.2s" repeatCount="indefinite" begin="0.2s"><mpath href="#p6"/></animateMotion></circle>
-<circle r="4.5" fill="#7F77DD"><animateMotion dur="1.2s" repeatCount="indefinite" begin="0.8s"><mpath href="#p7"/></animateMotion></circle>
-<circle r="4.5" fill="#7F77DD"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.4s"><mpath href="#p7b"/></animateMotion></circle>
+<circle r="4" fill="#D85A30"><animateMotion dur="1.2s" repeatCount="indefinite" begin="0.2s"><mpath href="#p6"/></animateMotion></circle>
+<circle r="4" fill="#D85A30"><animateMotion dur="1.2s" repeatCount="indefinite" begin="0.8s"><mpath href="#p7"/></animateMotion></circle>
+<circle r="4" fill="#D85A30"><animateMotion dur="1.6s" repeatCount="indefinite" begin="0.5s"><mpath href="#p8b"/></animateMotion></circle>
+<circle r="4" fill="#D85A30"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.4s"><mpath href="#p7b"/></animateMotion></circle>
 <circle r="4" fill="#888780"><animateMotion dur="1.2s" repeatCount="indefinite" begin="0.3s"><mpath href="#p5"/></animateMotion></circle>
 <circle r="4" fill="#1D9E75"><animateMotion dur="1.6s" repeatCount="indefinite" begin="0.0s"><mpath href="#p8"/></animateMotion></circle>
 <circle r="4" fill="#378ADD"><animateMotion dur="1.6s" repeatCount="indefinite" begin="0.4s"><mpath href="#p9"/></animateMotion></circle>
+<circle r="4.5" fill="#7F77DD"><animateMotion dur="1.0s" repeatCount="indefinite" begin="0.3s"><mpath href="#p15"/></animateMotion></circle>
 <circle r="4" fill="#D85A30"><animateMotion dur="1.4s" repeatCount="indefinite" begin="0.8s"><mpath href="#p10"/></animateMotion></circle>
 <circle r="4" fill="#378ADD"><animateMotion dur="1.4s" repeatCount="indefinite" begin="1.2s"><mpath href="#p11"/></animateMotion></circle>
-<circle r="4" fill="#1D9E75"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.2s"><mpath href="#p12"/></animateMotion></circle>
-<circle r="4" fill="#378ADD"><animateMotion dur="1.8s" repeatCount="indefinite" begin="0.6s"><mpath href="#p13"/></animateMotion></circle>
+<circle r="4" fill="#1D9E75"><animateMotion dur="2.8s" repeatCount="indefinite" begin="0.2s"><mpath href="#p12"/></animateMotion></circle>
+<circle r="4" fill="#378ADD"><animateMotion dur="2.2s" repeatCount="indefinite" begin="0.6s"><mpath href="#p13"/></animateMotion></circle>
 <circle r="4" fill="#888780"><animateMotion dur="4.8s" repeatCount="indefinite" begin="0.0s"><mpath href="#p14"/></animateMotion></circle>
 </svg>
